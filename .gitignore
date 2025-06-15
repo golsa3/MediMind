@@ -1,0 +1,21 @@
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+
+# Environments
+venv/
+.env/
+
+# OS and editor-specific files
+.DS_Store
+*.log
+
+# Jupyter/IPython
+.ipynb_checkpoints/
+
+# Streamlit
+.streamlit/
+
+# VSCode
+.vscode/
