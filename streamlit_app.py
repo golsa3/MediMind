@@ -1,3 +1,19 @@
+import os
+import json
+
+# Load service account from Streamlit secrets
+from google.oauth2 import service_account
+import vertexai
+
+creds_dict = st.secrets["google_service_account"]
+creds = service_account.Credentials.from_service_account_info(creds_dict)
+
+vertexai.init(
+    project=creds_dict["project_id"],
+    location="us-central1",
+    credentials=creds
+)
+
 import streamlit as st
 import tempfile
 import base64
