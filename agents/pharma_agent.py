@@ -8,7 +8,7 @@ class PharmaAgent:
         with open(self.case_path, 'r') as file:
             case_data = json.load(file)
 
-        meds = [m.lower() for m in case_data.get("medications", [])]
+        meds = [m.lower() for m in case_data.get("medications", []) if isinstance(m, str)]
 
         interaction_db = {
             ("metformin", "lisinopril"): "⚠️ Risk of lactic acidosis when combined.",
