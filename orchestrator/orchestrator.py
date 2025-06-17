@@ -5,22 +5,15 @@ from agents.pharma_agent import PharmaAgent
 from agents.reflective_agent import ReflectiveSummaryAgent
 from agents.concern_agent import ConcernAgent
 
-def run_all_agents(case_data: dict):
+def run_all_agents(case_path):
+    with open(case_path, "r") as file:
+        case_data = json.load(file)
+
     results = {}
-
-    history_agent = HistoryAgent(case_data)
-    results["history_summary"] = history_agent.run()
-
-    diagnostic_agent = DiagnosticAgent(case_data)
-    results["diagnostic_suggestions"] = diagnostic_agent.run()
-
-    pharma_agent = PharmaAgent(case_data)
-    results["medication_review"] = pharma_agent.run()
-
-    reflective_agent = ReflectiveSummaryAgent(case_data)
-    results["reflective_summary"] = reflective_agent.run()
-
-    concern_agent = ConcernAgent(case_data)
-    results["concerns"] = concern_agent.run()
+    results["history_summary"] = HistoryAgent(case_data).run()
+    results["diagnostic_suggestions"] = DiagnosticAgent(case_data).run()
+    results["medication_review"] = PharmaAgent(case_data).run()
+    results["reflective_summary"] = ReflectiveSummaryAgent(case_data).run()
+    results["concerns"] = ConcernAgent(case_data).run()
 
     return results
