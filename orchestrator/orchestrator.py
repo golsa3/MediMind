@@ -5,27 +5,22 @@ from agents.pharma_agent import PharmaAgent
 from agents.reflective_agent import ReflectiveSummaryAgent
 from agents.concern_agent import ConcernAgent
 
-def run_all_agents(case_path):
+def run_all_agents(case_data: dict):
     results = {}
 
-    # Run HistoryAgent
-    history_agent = HistoryAgent(case_path)
+    history_agent = HistoryAgent(case_data)
     results["history_summary"] = history_agent.run()
 
-    # Run DiagnosticAgent
-    diagnostic_agent = DiagnosticAgent(case_path)
+    diagnostic_agent = DiagnosticAgent(case_data)
     results["diagnostic_suggestions"] = diagnostic_agent.run()
 
-    # Run PharmaAgent
-    pharma_agent = PharmaAgent(case_path)
+    pharma_agent = PharmaAgent(case_data)
     results["medication_review"] = pharma_agent.run()
 
-    # Run ReflectiveSummaryAgent
-    reflective_agent = ReflectiveSummaryAgent(case_path)
+    reflective_agent = ReflectiveSummaryAgent(case_data)
     results["reflective_summary"] = reflective_agent.run()
 
-    # Run ConcernAgent
-    concern_agent = ConcernAgent(case_path)
-    results["concern_flags"] = concern_agent.run()
+    concern_agent = ConcernAgent(case_data)
+    results["concerns"] = concern_agent.run()
 
     return results

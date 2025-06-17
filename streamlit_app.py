@@ -1,65 +1,62 @@
 import streamlit as st
-import os
-import json
-
-# Load service account from Streamlit secrets
-from google.oauth2 import service_account
-import vertexai
-
-creds_dict = st.secrets["google_service_account"]
-creds = service_account.Credentials.from_service_account_info(creds_dict)
-
-vertexai.init(
-    project=creds_dict["project_id"],
-    location="us-central1",
-    credentials=creds
-)
-
-import streamlit as st
-import tempfile
-import base64
 from orchestrator.orchestrator import run_all_agents
 
-st.set_page_config(page_title="MediMind", page_icon="🧠", layout="centered")
+st.set_page_config(page_title="MediMind: Multi-Agent Clinical Review", page_icon="🧠")
 
 st.title("🧠 MediMind: Multi-Agent Clinical Review")
 st.markdown(
     """
-Welcome to **MediMind**, your collaborative AI assistant for patient case review.  
-Upload a structured `.json` patient summary and let our specialized agents flag diagnoses, risks, medication concerns, and clinical patterns.
+Welcome to **MediMind**, your collaborative AI assistant for patient case review.
+Fill out the form below to generate a case. MediMind's specialized agents will flag diagnoses, risks, medication concerns, and clinical patterns.
 """
 )
 
-# File uploader
-st.markdown("📁 **Upload a patient case (JSON)**")
-uploaded_file = st.file_uploader("Drag and drop file here", type=["json"])
+with st.form("patient_case_form"):
+    st.header("📋 Patient Case Information")
 
-if uploaded_file is not None:
+    # Demographics
+    st.subheader("🧍 Demographics")
+    age = st.number_input("Age", min_value=0, max_value=120, value=45)
+    sex = st.selectbox("Sex", ["M", "F", "Other"])
+    weight = st.number_input("Weight (kg)", min_value=1.0, max_value=500.0, value=70.0)
+
+    # Medical Info
+    st.subheader("🩺 Medical Information")
+    medical_history = st.text_area("Medical History (comma-separated)", value="Hypertension, Diabetes")
+    current_symptoms = st.text_area("Current Symptoms (comma-separated)", value="Fever, Fatigue")
+    vital_signs = st.text_area("Vital Signs (key:value, comma-separated)", value="Temp:101.2, BP:140/90, HR:95")
+
+    # Medications
+    st.subheader("💊 Medications")
+    medications = st.text_area("Current Medications (comma-separated)", value="Metformin, Lisinopril")
+
+    submitted = st.form_submit_button("Run MediMind Review")
+
+if submitted:
+    st.success("✅ Case submitted. Running multi-agent review...")
+
+    # Parse user input into dictionary
     try:
-        # Save the uploaded file to a temporary file
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".json", mode="w") as tmp:
-            content = uploaded_file.read().decode("utf-8")
-            tmp.write(content)
-            case_path = tmp.name
+        case_data = {
+            "age": age,
+            "sex": sex,
+            "weight": weight,
+            "medical_history": [x.strip() for x in medical_history.split(",") if x.strip()],
+            "current_symptoms": [x.strip() for x in current_symptoms.split(",") if x.strip()],
+            "vital_signs": {
+                k.strip(): v.strip()
+                for k, v in (pair.split(":") for pair in vital_signs.split(",") if ":" in pair)
+            },
+            "medications": [x.strip() for x in medications.split(",") if x.strip()]
+        }
 
-        # Run agents
-        results = run_all_agents(case_path)
+        # Run MediMind review
+        results = run_all_agents(case_data)
 
-        st.success("✅ Analysis complete. See results below.")
-
-        # Display Results
-        st.subheader("🩺 History Summary")
-        st.write(results["history_summary"])
-
-        st.subheader("🧠 Diagnostic Suggestions")
-        st.write(results["diagnostic_suggestions"])
-
-        st.subheader("💊 Medication Review")
-        st.write(results["medication_review"])
-
-        st.subheader("📋 Reflective Summary")
-        st.markdown(results["reflective_summary"])
+        st.header("🧠 MediMind Review Results")
+        for key, value in results.items():
+            st.subheader(f"🔍 {key.replace('_', ' ').title()}")
+            st.markdown(value)
 
     except Exception as e:
-        st.error("An error occurred while processing the file.")
-        st.exception(e)
+        st.error(f"An error occurred while processing the case: {e}")

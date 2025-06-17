@@ -1,27 +1,24 @@
-import json
-
 class PharmaAgent:
-    def __init__(self, case_path):
-        self.case_path = case_path
+    def __init__(self, case_data):
+        self.case_data = case_data
 
     def run(self):
-        with open(self.case_path, 'r') as file:
-            case_data = json.load(file)
+        meds = [m.lower() for m in self.case_data.get("medications", [])]
+        alerts = []
 
-        meds = [m.lower() for m in case_data.get("medications", []) if isinstance(m, str)]
+        interaction_pairs = [
+            ("lisinopril", "ibuprofen"),  # raises kidney risk
+            ("metformin", "cimetidine"),  # affects metformin clearance
+        ]
 
-        interaction_db = {
-            ("metformin", "lisinopril"): "⚠️ Risk of lactic acidosis when combined.",
-            ("acetaminophen", "alcohol"): "⚠️ Liver toxicity risk with concurrent use.",
-            ("ibuprofen", "lisinopril"): "⚠️ May reduce kidney function."
-        }
+        for a, b in interaction_pairs:
+            if a in meds and b in meds:
+                alerts.append(f"⚠️ Potential interaction between {a} and {b}.")
 
-        flagged = []
-        for (med1, med2), warning in interaction_db.items():
-            if med1 in meds and med2 in meds:
-                flagged.append(warning)
+        if not meds:
+            alerts.append("⚠️ No medications listed — verify medication history.")
 
-        if not flagged:
-            flagged.append("✅ No major drug interactions detected.")
+        if not alerts:
+            alerts.append("✅ No medication concerns flagged.")
 
-        return flagged
+        return "\n".join(alerts)

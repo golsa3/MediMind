@@ -1,18 +1,19 @@
-import json
-
 class ConcernAgent:
-    def __init__(self, case_path):
-        self.case_path = case_path
+    def __init__(self, case_data):
+        self.case_data = case_data
 
     def run(self):
-        with open(self.case_path, 'r') as file:
-            case_data = json.load(file)
-
         concerns = []
 
-        symptoms = case_data.get("current_symptoms", [])
-        vitals = case_data.get("vital_signs", {})
+        symptoms = self.case_data.get("current_symptoms", [])
+        vitals = self.case_data.get("vital_signs", {})
         temp = vitals.get("temperature", None)
+
+        # Normalize temperature if it's a string (e.g., from form input)
+        try:
+            temp = float(temp) if temp is not None else None
+        except ValueError:
+            temp = None
 
         # Check 1: Are symptoms missing?
         if not symptoms:
@@ -29,10 +30,10 @@ class ConcernAgent:
             concerns.append("⚠️ 'Fever' is listed as a symptom but temperature is below 99°F.")
 
         # Check 4: Is lab data too limited?
-        if len(case_data.get("labs", {})) < 3:
+        if len(self.case_data.get("labs", {})) < 3:
             concerns.append("⚠️ Limited lab data — consider ordering more tests.")
 
         if not concerns:
             concerns.append("✅ No major concerns flagged.")
 
-        return concerns
+        return "\n".join(concerns)
