@@ -11,9 +11,10 @@ class ReflectiveSummaryAgent:
         model = GenerativeModel("gemini-2.0-flash")
 
         prompt = (
-            "You are a clinical assistant reviewing this patient case summary:\n\n"
+            "You are a highly skilled multidisciplinary physician and clinical reasoning expert. You are reviewing the following patient case summary:\n\n"
             f"{self.summary}\n\n"
-            "Please reflect on the case and flag any overlooked patterns, risks, or concerns."
+            "Based on this information, identify any overlooked patterns, inconsistencies, risk factors, or urgent red flags. Organize your response by clinical category (e.g., medical history, medications, vitals, symptoms, differential diagnosis, missing information). Provide practical and specific insights as if preparing this for a clinical handoff or triage escalation. Avoid generic statements and focus on meaningful observations that could guide diagnosis or further workup."
+
         )
 
         response = model.generate_content(prompt)
