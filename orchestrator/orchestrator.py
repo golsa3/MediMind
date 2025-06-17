@@ -1,4 +1,5 @@
 import os
+import json
 from agents.history_agent import HistoryAgent
 from agents.diagnostic_agent import DiagnosticAgent
 from agents.pharma_agent import PharmaAgent
