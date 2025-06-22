@@ -1,6 +1,13 @@
 streamlit
 vertexai
-google-cloud-aiplatform
+google-cloud-aiplatform==1.48.0
 grpcio
 pandas
 openai
+pdfkit
+pyrebase4
+firebase-admin
+google-cloud-firestore
+google-cloud-secret-manager
+google-cloud-logging
+requests
