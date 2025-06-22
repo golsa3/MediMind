@@ -21,8 +21,7 @@ from io import BytesIO
 from streamlit.components.v1 import html
 from streamlit_js_eval import streamlit_js_eval, get_geolocation
 
-with open("firebase_config.json") as f:
-    firebase_config = json.load(f)
+
 
 
 def clean_text(text):
@@ -284,6 +283,7 @@ if auth_choice == "Log In":
                 user = auth.sign_in_with_email_and_password(email, password)
                 st.session_state.user = user
                 st.session_state.logged_in = True
+                st.session_state.auth_choice = "Log In"
                 st.success("✅ Logged in successfully!")
                 st.rerun()
             except requests.exceptions.HTTPError as e:
@@ -327,6 +327,9 @@ elif auth_choice == "Sign Up":
                     "last_name": last_name
                 }
                 st.success("✅ Account created successfully! Please log in.")
+                st.session_state.auth_choice = "Log In"
+                st.rerun()
+
             except requests.exceptions.HTTPError as e:
                 try:
                     error_json = e.response.json()
