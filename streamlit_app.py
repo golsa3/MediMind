@@ -322,13 +322,17 @@ elif auth_choice == "Sign Up":
             try:
 
                 user = auth.create_user_with_email_and_password(email, password)
+                login_user = auth.sign_in_with_email_and_password(email, password)  # log them in immediately
+
                 st.session_state.user = {
                     "email": email,
                     "first_name": first_name,
-                    "last_name": last_name
+                    "last_name": last_name,
+                    "idToken": login_user["idToken"]  
                 }
-                st.success("✅ Account created successfully! Please log in.")
-                st.session_state.auth_choice = "Log In"
+                st.session_state.authenticated = True  # this can help redirect
+                st.session_state.logged_in = True
+                st.success("✅ Account created and logged in!")
                 st.rerun()
 
             except requests.exceptions.HTTPError as e:
@@ -356,7 +360,7 @@ elif auth_choice == "Continue as Guest":
     st.success("✅ Continuing as guest.")
 
 # Prevent form access until logged in or guest
-if auth_choice not in ["Continue as Guest"] and not st.session_state.logged_in:
+if not st.session_state.get("authenticated") and not st.session_state.get("logged_in") and auth_choice != "Continue as Guest":
     st.stop()
 
 # Query parameter location fetch
