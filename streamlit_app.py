@@ -251,7 +251,19 @@ for key, default in {
 st.title("🧠 Welcome to MediMind")
 st.markdown("Please choose how you’d like to continue:")
 
-auth_choice = st.radio("Choose an action:", ["Log In", "Sign Up", "Continue as Guest"], key="auth_stage")
+if "auth_choice" not in st.session_state:
+    st.session_state.auth_choice = "Log In"
+
+# Render the radio button using session state for tracking
+st.session_state.auth_choice = st.radio(
+    "Choose an action:",
+    ["Log In", "Sign Up", "Continue as Guest"],
+    index=["Log In", "Sign Up", "Continue as Guest"].index(st.session_state.auth_choice),
+    key="auth_stage"
+)
+
+auth_choice = st.session_state.auth_choice
+
 
 if auth_choice == "Log In":
     with st.form("login_form"):
@@ -300,8 +312,19 @@ elif auth_choice == "Sign Up":
                     "last_name": last_name
                 }
                 st.success("✅ Account created successfully! Please log in.")
+            except requests.exceptions.HTTPError as e:
+                error_json = e.response.json()
+                message = error_json["error"]["message"]
+
+                if message == "EMAIL_EXISTS":
+                    st.error("🚫 An account with this email already exists. Please log in instead.")
+                    st.session_state.auth_choice = "Log In"
+                elif message == "INVALID_PASSWORD":
+                    st.error("🚫 Your password is invalid or too short. It must be at least 6 characters.")
+                else:
+                    st.error(f"❌ Error creating account: {message}")
             except Exception as e:
-                st.error(f"❌ Error creating account: {e}")
+                st.error(f"❌ Unexpected error: {e}")
 
 elif auth_choice == "Continue as Guest":
     st.session_state.logged_in = False

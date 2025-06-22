@@ -28,10 +28,12 @@ WORKDIR /app
 # Copy everything
 COPY . /app
 
+
 # Install Python dependencies
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
 
+COPY .streamlit /app/.streamlit
 # Allow external access
 EXPOSE 8080
 
