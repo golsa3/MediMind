@@ -255,14 +255,13 @@ if "auth_choice" not in st.session_state:
     st.session_state.auth_choice = "Log In"
 
 # Render the radio button using session state for tracking
-st.session_state.auth_choice = st.radio(
+auth_choice = st.radio(
     "Choose an action:",
     ["Log In", "Sign Up", "Continue as Guest"],
     index=["Log In", "Sign Up", "Continue as Guest"].index(st.session_state.auth_choice),
     key="auth_stage"
 )
-
-auth_choice = st.session_state.auth_choice
+st.session_state.auth_choice = auth_choice
 
 
 if auth_choice == "Log In":
