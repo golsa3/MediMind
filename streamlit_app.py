@@ -21,6 +21,9 @@ from io import BytesIO
 from streamlit.components.v1 import html
 from streamlit_js_eval import streamlit_js_eval, get_geolocation
 
+with open("firebase_config.json") as f:
+    firebase_config = json.load(f)
+
 
 def clean_text(text):
     replacements = {
@@ -250,15 +253,16 @@ for key, default in {
 # --------------------- AUTH BLOCK -------------------------
 st.title("🧠 Welcome to MediMind")
 st.markdown("Please choose how you’d like to continue:")
+options = ["Log In", "Sign Up", "Continue as Guest"]
 
-if "auth_choice" not in st.session_state:
+if "auth_choice" not in st.session_state or st.session_state.auth_choice not in options:
     st.session_state.auth_choice = "Log In"
 
 # Render the radio button using session state for tracking
 auth_choice = st.radio(
     "Choose an action:",
-    ["Log In", "Sign Up", "Continue as Guest"],
-    index=["Log In", "Sign Up", "Continue as Guest"].index(st.session_state.auth_choice),
+    options,
+    index=options.index(st.session_state.auth_choice),
     key="auth_stage"
 )
 st.session_state.auth_choice = auth_choice
@@ -282,8 +286,19 @@ if auth_choice == "Log In":
                 st.session_state.logged_in = True
                 st.success("✅ Logged in successfully!")
                 st.rerun()
-            except Exception as e:
-                st.error("❌ Invalid credentials")
+            except requests.exceptions.HTTPError as e:
+                try:
+                    error_json = e.response.json()
+                    message = error_json["error"]["message"]
+
+                    if message == "EMAIL_NOT_FOUND":
+                        st.error("🚫 No account found with this email. Please sign up first.")
+                    elif message == "INVALID_PASSWORD":
+                        st.error("🚫 Incorrect password. Please try again or reset it.")
+                    else:
+                        st.error(f"❌ Login failed: {message}")
+                except:
+                    st.error("❌ Please log in, account already exists.")
 
         if forgot_pw:
             if email:
@@ -302,6 +317,7 @@ elif auth_choice == "Sign Up":
         first_name = st.text_input("First Name", key="signup_first_name")
         last_name = st.text_input("Last Name", key="signup_last_name")
         submitted_signup = st.form_submit_button("Submit Sign Up")
+
         if submitted_signup:
             try:
                 user = auth.create_user_with_email_and_password(email, password)
@@ -312,18 +328,18 @@ elif auth_choice == "Sign Up":
                 }
                 st.success("✅ Account created successfully! Please log in.")
             except requests.exceptions.HTTPError as e:
-                error_json = e.response.json()
-                message = error_json["error"]["message"]
+                try:
+                    error_json = e.response.json()
+                    message = error_json["error"]["message"]
 
-                if message == "EMAIL_EXISTS":
-                    st.error("🚫 An account with this email already exists. Please log in instead.")
-                    st.session_state.auth_choice = "Log In"
-                elif message == "INVALID_PASSWORD":
-                    st.error("🚫 Your password is invalid or too short. It must be at least 6 characters.")
-                else:
-                    st.error(f"❌ Error creating account: {message}")
-            except Exception as e:
-                st.error(f"❌ Unexpected error: {e}")
+                    if message == "EMAIL_EXISTS":
+                        st.error("🚫 This email is already registered. Please use the Log In tab instead.")
+                    elif message == "INVALID_PASSWORD":
+                        st.error("🚫 Password is too short. It must be at least 6 characters.")
+                    else:
+                        st.error(f"❌ Sign-up failed: {message}")
+                except:
+                    st.error("❌ An unknown error occurred during sign-up.")
 
 elif auth_choice == "Continue as Guest":
     st.session_state.logged_in = False
