@@ -320,6 +320,7 @@ elif auth_choice == "Sign Up":
 
         if submitted_signup:
             try:
+
                 user = auth.create_user_with_email_and_password(email, password)
                 st.session_state.user = {
                     "email": email,
@@ -331,18 +332,24 @@ elif auth_choice == "Sign Up":
                 st.rerun()
 
             except requests.exceptions.HTTPError as e:
-                try:
-                    error_json = e.response.json()
-                    message = error_json["error"]["message"]
+                if e.response is not None:
+                    try:
+                        error_json = e.response.json()
+                        message = error_json.get("error", {}).get("message", "UNKNOWN_ERROR")
 
-                    if message == "EMAIL_EXISTS":
-                        st.error("🚫 This email is already registered. Please use the Log In tab instead.")
-                    elif message == "INVALID_PASSWORD":
-                        st.error("🚫 Password is too short. It must be at least 6 characters.")
-                    else:
-                        st.error(f"❌ Sign-up failed: {message}")
-                except:
-                    st.error("❌ An unknown error occurred during sign-up.")
+                        if message == "EMAIL_EXISTS":
+                            st.error("🚫 This email is already registered. Please use the Log In tab instead.")
+                        elif message == "INVALID_PASSWORD":
+                            st.error("🚫 Password is too short. It must be at least 6 characters.")
+                        else:
+                            st.error(f"❌ Sign-up failed: {message}")
+                    except Exception as inner_error:
+                        st.error("❌ Could not parse Firebase error.")
+                        st.error(f"📦 Raw error: {e}")
+                        st.error(f"🔍 Inner exception: {inner_error}")
+                else:
+                    st.error("❌ Account already exists, please log in")
+
 
 elif auth_choice == "Continue as Guest":
     st.session_state.logged_in = False
