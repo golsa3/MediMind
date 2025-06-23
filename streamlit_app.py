@@ -605,7 +605,7 @@ if st.session_state.results:
     st.subheader("➕ Add Missing Info")
     user_additions = st.text_area("Additional info or concerns (e.g. family history, exam findings):")
     if st.button("🔁 Update Reflection"):
-        vertexai.init(project="vital-valor-462719-n9", location="us-central1")
+        vertexai.init(project="medimind-fc2a6", location="us-central1")
         model = GenerativeModel("gemini-2.0-flash")
         summary_text = json.dumps(st.session_state.patient_case, indent=2)
         prompt = (
