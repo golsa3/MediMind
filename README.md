@@ -1,7 +1,7 @@
 
 # 🧠 MediMind: Multi-Agent Clinical AI Assistant
 
-[![Streamlit App](https://img.shields.io/badge/demo-live-green?style=flat-square&logo=streamlit)](https://medimind-606082995266.us-central1.run.app)  
+[![Streamlit App](https://img.shields.io/badge/demo-live-green?style=flat-square&logo=streamlit)](https://medimind-557894168058.us-central1.run.app)  
 A multi-agent system that helps clinicians and users analyze medical case data, generate reflective summaries, offer personalized at-home precautions, and find nearby specialty clinics.
 
 ---
@@ -79,6 +79,7 @@ MediMind takes in user-submitted clinical data through a Streamlit form and rout
 - How to build production-ready Streamlit apps integrated with Firebase  
 - How to leverage Vertex AI for nuanced, human-like clinical reasoning  
 - How to handle asynchronous user flow and evolving symptom sets  
+- How to deploy apps to the cloud and protect keys to the different APIs
 
 ---
 
