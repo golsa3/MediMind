@@ -21,7 +21,29 @@ from io import BytesIO
 from streamlit.components.v1 import html
 from streamlit_js_eval import streamlit_js_eval, get_geolocation
 
+st.set_page_config(page_title="MediMind: Multi-Agent Clinical Review", page_icon="🧠", layout="wide")
 
+st.markdown("""
+<script>
+function scrollToAnchor(anchor) {
+    const el = document.getElementById(anchor);
+    if (el) {
+        el.scrollIntoView({ behavior: 'smooth' });
+    }
+}
+</script>
+""", unsafe_allow_html=True)
+
+with st.sidebar:
+    st.header("🔗 Quick Access")
+    st.markdown("[📝 Fill Out Form](#form)")
+    st.markdown("[📄 Your Report](#report)")
+    st.markdown("[🏥 Nearby Clinics](#clinics)")
+    st.markdown("[🏠 At-Home Advice](#precautions)")
+
+if st.session_state.get("location_retrieved"):
+    st.success("📍 Location successfully retrieved using your device.")
+    del st.session_state["location_retrieved"]  # Optional: clear the flag after showing
 
 
 def clean_text(text):
@@ -205,7 +227,7 @@ def extract_specialties_from_symptoms(symptom_text):
 
     return list(found_specialties)
 
-st.set_page_config(page_title="MediMind: Multi-Agent Clinical Review", page_icon="🧠", layout="wide")
+
 
 # Firebase Initialization 
 if not firebase_admin._apps:
@@ -264,12 +286,13 @@ auth_choice = st.radio(
     index=options.index(st.session_state.auth_choice),
     key="auth_stage"
 )
-st.session_state.auth_choice = auth_choice
-
+def is_valid_email(email):
+    return bool(re.match(r"[^@]+@[^@]+\.[^@]+", email))
 
 if auth_choice == "Log In":
     with st.form("login_form"):
         email = st.text_input("Email", key="login_email")
+
         password = st.text_input("Password", type="password", key="login_password")
 
         col1, col2 = st.columns([2, 1])
@@ -277,8 +300,13 @@ if auth_choice == "Log In":
             submitted_login = st.form_submit_button("Submit Log In")
         with col2:
             forgot_pw = st.form_submit_button("Forgot Password?")
+        
+ 
 
-        if submitted_login:
+        if submitted_login:       
+            if not is_valid_email(email):
+                st.warning("Please enter a valid email address.")
+                st.stop()
             try:
                 user = auth.sign_in_with_email_and_password(email, password)
                 st.session_state.user = user
@@ -289,16 +317,25 @@ if auth_choice == "Log In":
             except requests.exceptions.HTTPError as e:
                 try:
                     error_json = e.response.json()
-                    message = error_json["error"]["message"]
+                    message = error_json.get("error", {}).get("message", "UNKNOWN_ERROR")
 
-                    if message == "EMAIL_NOT_FOUND":
+                    if message == "EMAIL_EXISTS":
+                        st.error("🚫 This email is already registered. Please log in instead.")
+                    elif message == "INVALID_EMAIL":
+                        st.error("🚫 Invalid email format. Use something like `name@example.com`.")
+                    elif "WEAK_PASSWORD" in message or message == "WEAK_PASSWORD : Password should be at least 6 characters":
+                        st.error("🚫 Password must be at least 6 characters.")
+                    elif message == "EMAIL_NOT_FOUND":
                         st.error("🚫 No account found with this email. Please sign up first.")
                     elif message == "INVALID_PASSWORD":
-                        st.error("🚫 Incorrect password. Please try again or reset it.")
+                        st.error("🚫 Incorrect password. Please try again.")
+                    elif message == "USER_DISABLED":
+                        st.error("🚫 Your account has been disabled. Contact support.")
                     else:
-                        st.error(f"❌ Login failed: {message}")
-                except:
-                    st.error("❌ Please log in, account already exists.")
+                        st.error(f"❌ Firebase error: {message}")
+                except Exception:
+                    st.error("❌ Incorrect/Wrong format password")
+
 
         if forgot_pw:
             if email:
@@ -313,12 +350,19 @@ if auth_choice == "Log In":
 elif auth_choice == "Sign Up":
     with st.form("signup_form"):
         email = st.text_input("Email", key="signup_email")
+
         password = st.text_input("Password (min 6 characters)", type="password", key="signup_password")
         first_name = st.text_input("First Name", key="signup_first_name")
         last_name = st.text_input("Last Name", key="signup_last_name")
+        
+        
         submitted_signup = st.form_submit_button("Submit Sign Up")
 
         if submitted_signup:
+            
+            if not is_valid_email(email):
+                st.warning("Please enter a valid email address.")
+                st.stop()
             try:
 
                 user = auth.create_user_with_email_and_password(email, password)
@@ -336,23 +380,27 @@ elif auth_choice == "Sign Up":
                 st.rerun()
 
             except requests.exceptions.HTTPError as e:
-                if e.response is not None:
-                    try:
-                        error_json = e.response.json()
-                        message = error_json.get("error", {}).get("message", "UNKNOWN_ERROR")
+                try:
+                    error_json = e.response.json()
+                    message = error_json.get("error", {}).get("message", "UNKNOWN_ERROR")
 
-                        if message == "EMAIL_EXISTS":
-                            st.error("🚫 This email is already registered. Please use the Log In tab instead.")
-                        elif message == "INVALID_PASSWORD":
-                            st.error("🚫 Password is too short. It must be at least 6 characters.")
-                        else:
-                            st.error(f"❌ Sign-up failed: {message}")
-                    except Exception as inner_error:
-                        st.error("❌ Could not parse Firebase error.")
-                        st.error(f"📦 Raw error: {e}")
-                        st.error(f"🔍 Inner exception: {inner_error}")
-                else:
-                    st.error("❌ Account already exists, please log in")
+                    if message == "EMAIL_EXISTS":
+                        st.error("🚫 This email is already registered. Please log in instead.")
+                    elif message == "INVALID_EMAIL":
+                        st.error("🚫 Invalid email format. Use something like `name@example.com`.")
+                    elif "WEAK_PASSWORD" in message or message == "WEAK_PASSWORD : Password should be at least 6 characters":
+                        st.error("🚫 Password must be at least 6 characters.")
+                    elif message == "EMAIL_NOT_FOUND":
+                        st.error("🚫 No account found with this email. Please sign up first.")
+                    elif message == "INVALID_PASSWORD":
+                        st.error("🚫 Incorrect password. Please try again.")
+                    elif message == "USER_DISABLED":
+                        st.error("🚫 Your account has been disabled. Contact support.")
+                    else:
+                        st.error(f"❌ Firebase error: {message}")
+                except Exception:
+                    st.error("❌ Incorrect/Wrong format password")
+
 
 
 elif auth_choice == "Continue as Guest":
@@ -376,23 +424,28 @@ if location and (not st.session_state.lat or not st.session_state.lon):
 # ------------------ LOCATION FETCH BLOCK (OUTSIDE FORM) ------------------
 with st.container():
     st.markdown("**Optional:** Use current location")
+
     if st.button("📍 Use My Location"):
         streamlit_js_eval(
             js_expressions="navigator.geolocation.getCurrentPosition((pos) => [pos.coords.latitude, pos.coords.longitude])",
             key="get_location"
         )
+        st.session_state.waiting_for_location = True  # flag to indicate location fetch started
 
-    # On rerun, check if location was retrieved
-location = get_geolocation()
+# Only call get_geolocation() if user clicked the button
+if st.session_state.get("waiting_for_location"):
+    location = get_geolocation()
 
-if location:
-    st.session_state.lat = location['coords']['latitude']
-    st.session_state.lon = location['coords']['longitude']
-    st.success("📍 Location detected!")
-    st.session_state.user_location_used = True
-    #st.experimental_rerun()
-else:
-    st.info("🔄 Waiting for location permission or data...")
+    if location and "coords" in location:
+        st.session_state.lat = location['coords']['latitude']
+        st.session_state.lon = location['coords']['longitude']
+        st.session_state.user_location_used = True
+        st.session_state.location_retrieved = True  # ✅ Flag for success message
+        st.session_state.waiting_for_location = False
+        st.rerun()
+    else:
+        st.info("🔄 Waiting for location permission or data...")
+
 
 # --------------------------- FORM SECTION --------------------------
 st.markdown("<div id='form'></div>", unsafe_allow_html=True)
@@ -644,45 +697,45 @@ if st.session_state.logged_in:
     st.subheader("📅 Past Reports")
 
     try:
-        import tempfile
-
         user_email = st.session_state.user["email"]
         reports_ref = db.collection("users").document(user_email).collection("reports")
-        reports = reports_ref.order_by("timestamp", direction=firestore.Query.DESCENDING).stream()
+        reports = list(reports_ref.order_by("timestamp", direction=firestore.Query.DESCENDING).stream())
 
-        for report in reports:
-            data = report.to_dict()
-            timestamp = data.get("timestamp")
-            input_data = data.get("patient_case", {})
-            results = data.get("results", {})
+        with st.expander("📋 Past Reports", expanded=False):
+            for report in reports:
+                data = report.to_dict()
+                timestamp = data.get("timestamp")
+                input_data = data.get("patient_case", {})
+                results = data.get("results", {})
 
-            readable_time = timestamp.strftime('%B %d, %Y %I:%M %p') if timestamp else "Unknown"
-            st.markdown(f"### 📂 Report from {readable_time}")
-            col1, col2 = st.columns([1, 5])
+                # Format readable time
+                readable_time = timestamp.strftime('%B %d, %Y %I:%M %p') if timestamp else "Unknown"
+                st.markdown(f"### 📂 Report from {readable_time}")
+                col1, col2 = st.columns([1, 5])
 
-            with col1:
-                if st.button(f"🗑️ Delete", key=f"delete_{report.id}"):
-                    try:
-                        report.reference.delete()
-                        st.success("Report deleted.")
-                        st.rerun()
-                    except Exception as e:
-                        st.error(f"❌ Failed to delete report: {e}")
+                # Delete button
+                with col1:
+                    if st.button(f"🗑️ Delete", key=f"delete_{report.id}"):
+                        try:
+                            report.reference.delete()
+                            st.success("Report deleted.")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"❌ Failed to delete report: {e}")
 
-            with col2:
+                # Download button
+                with col2:
+                    reflection = clean_text(data.get("reflection", "No summary generated."))
+                    precautions = clean_text(data.get("precautions", "No at-home precautions provided."))
 
-                reflection = clean_text(data.get("reflection", "No summary generated."))
-                precautions = clean_text(data.get("precautions", "No at-home precautions provided."))
-
-                pdf_bytes = generate_clean_pdf(input_data, timestamp, reflection, precautions)
-                st.download_button(
-                    label="⬇️ Download PDF",
-                    data=pdf_bytes,
-                    file_name=f"medimind_report_{timestamp.date()}.pdf",
-                    mime="application/pdf",
-                    key=f"download_{report.id}"
-                )
-
+                    pdf_bytes = generate_clean_pdf(input_data, timestamp, reflection, precautions)
+                    st.download_button(
+                        label="⬇️ Download PDF",
+                        data=pdf_bytes,
+                        file_name=f"medimind_report_{timestamp.date()}.pdf",
+                        mime="application/pdf",
+                        key=f"download_{report.id}"
+                    )
     except Exception as e:
         st.error(f"❌ Error loading past reports: {e}")
 
@@ -727,12 +780,12 @@ if not st.session_state.logged_in and st.session_state.results:
 
 
 # Feedback
+st.markdown("<div id='feedback'></div>", unsafe_allow_html=True)
+
 st.markdown("""
 ---
 ### 💬 Your Opinion Matters
 MediMind uses AI to generate health recommendations. Help us improve!  
 👉 [Leave Feedback Here](https://docs.google.com/forms/d/e/1FAIpQLSfKA5PAfgQTAzdLX4ARXR50griLjKOi4RySCd7iLhoJSy1y1w/viewform?usp=header)
 """)
-
-
 
