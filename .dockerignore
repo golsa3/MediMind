@@ -1,4 +1,11 @@
+# Ignore virtualenv and cache
 __pycache__/
 *.pyc
 venv/
+
+# Ignore firebase credentials (if stored separately)
 firebase_config.json
+
+#  ALLOW .streamlit/
+!.streamlit/
+!.streamlit/secrets.toml

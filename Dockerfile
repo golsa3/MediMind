@@ -26,7 +26,7 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Copy everything
-COPY streamlit_config /app/.streamlit
+COPY streamlit_config/secrets.toml /app/.streamlit/secrets.toml
 
 COPY . /app
 
