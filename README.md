@@ -53,51 +53,15 @@ graph TD
     A[User Input (Streamlit Form)] --> B[Run Multi-Agent Reflection Engine]
     B --> C[AI Reflective Summary]
     B --> D[At-Home Precautions Generator]
-    B --> E[Specialty Detection from Symptoms]
+    B --> E[Symptom-to-Specialty Mapping]
     E --> F[Google Maps API - Nearby Clinics]
-    C & D & F --> G[PDF Generation + Output]
+    C --> G[PDF Generation + Output]
+    D --> G
+    F --> G
     G --> H[Save to Firebase (if logged in)]
 ```
 
----
 
-## 🚀 Getting Started
-
-### 🔧 Prerequisites
-
-- Python 3.9+
-- [Streamlit](https://streamlit.io/)
-- Google Cloud credentials (Vertex AI + Places API)
-- Firebase project with authentication enabled
-
-### ⚙️ Setup Instructions
-
-```bash
-git clone https://github.com/yourusername/medimind.git
-cd medimind
-pip install -r requirements.txt
-```
-
-Create a `.streamlit/secrets.toml` file with your API keys:
-
-```toml
-[google_service_account]
-places_api_key = "YOUR_GOOGLE_PLACES_API_KEY"
-
-[firebase_config]
-apiKey = "..."
-authDomain = "..."
-projectId = "..."
-storageBucket = "..."
-messagingSenderId = "..."
-appId = "..."
-```
-
-Then run:
-
-```bash
-streamlit run streamlit_app.py
-```
 
 ---
 
