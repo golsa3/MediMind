@@ -6,7 +6,7 @@ class ReflectiveSummaryAgent:
         self.summary = summary
 
     def run(self):
-        vertexai.init(project="vital-valor-462719-n9", location="us-central1")
+        vertexai.init(project="medimind-fc2a6", location="us-central1")
 
         model = GenerativeModel("gemini-2.0-flash")
 

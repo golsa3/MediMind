@@ -1,7 +1,7 @@
 from vertexai.generative_models import GenerativeModel
 import vertexai
 
-vertexai.init(project="vital-valor-462719-n9", location="us-central1")
+vertexai.init(project="medimind-fc2a6", location="us-central1")
 
 def generate_precautions(patient_case_summary: str, reflection_summary: str) -> str:
     """
