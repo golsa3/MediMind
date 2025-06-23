@@ -8,7 +8,7 @@ A multi-agent system that helps clinicians and users analyze medical case data, 
 
 ## 🖼️ Demo & Screenshots
 
-[🎥 Watch Demo Video](https://your-demo-video-url.com)
+[🎥 Watch Demo Video](https://youtu.be/tMaGt4zxxGI)
 
 ### 🏠 Homepage
 <img src="screenshots/homepage.png" width="800" alt="MediMind Homepage">

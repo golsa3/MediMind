@@ -9,7 +9,7 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 from orchestrator.orchestrator import run_all_agents
 from agents.at_home_agent import generate_precautions
-from firebase_config import firebase_config
+from firebase_setup import firebase, auth, db
 from vertexai.generative_models import GenerativeModel
 import vertexai
 from datetime import datetime, timezone
@@ -233,9 +233,7 @@ if not firebase_admin._apps:
     cred = credentials.Certificate("firebase_service_account.json")
     firebase_admin.initialize_app(cred)
 
-firebase = pyrebase.initialize_app(firebase_config)
-auth = firebase.auth()
-db = firestore.client()
+
 
 # Custom CSS for UI
 st.markdown("""
@@ -604,6 +602,11 @@ if st.session_state.results:
 
     st.subheader("➕ Add Missing Info")
     user_additions = st.text_area("Additional info or concerns (e.g. family history, exam findings):")
+    
+    if not st.session_state.results:
+        st.warning("Please run the initial MediMind review before updating the reflection.")
+        st.stop()
+
     if st.button("🔁 Update Reflection"):
         vertexai.init(project="medimind-fc2a6", location="us-central1")
         model = GenerativeModel("gemini-2.0-flash")
