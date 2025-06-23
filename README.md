@@ -48,19 +48,8 @@ A multi-agent system that helps clinicians and users analyze medical case data, 
 
 ## ⚙️ How It Works
 
-<!-- Mermaid diagram (for local markdown viewers) -->
+MediMind takes in user-submitted clinical data through a Streamlit form and routes it through a multi-agent reasoning engine. It produces AI-generated reflections, personalized care precautions, and maps-based clinic recommendations. All findings are compiled into a downloadable PDF report and optionally stored in Firebase for logged-in users.
 
-```mermaid
-graph TD
-    A[User Input (Streamlit Form)] --> B[Run Multi-Agent Reflection Engine]
-    B --> C[AI Reflective Summary]
-    B --> D[At-Home Precautions Generator]
-    B --> E[Symptom-to-Specialty Mapping]
-    E --> F[Google Maps API - Nearby Clinics]
-    C --> G[PDF Generation + Output]
-    D --> G
-    F --> G
-    G --> H[Save to Firebase (if logged in)]
 
 ## ⚙️ Architecture Diagram
 
