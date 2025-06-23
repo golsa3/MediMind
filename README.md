@@ -48,6 +48,8 @@ A multi-agent system that helps clinicians and users analyze medical case data, 
 
 ## ⚙️ How It Works
 
+<!-- Mermaid diagram (for local markdown viewers) -->
+
 ```mermaid
 graph TD
     A[User Input (Streamlit Form)] --> B[Run Multi-Agent Reflection Engine]
@@ -59,7 +61,11 @@ graph TD
     D --> G
     F --> G
     G --> H[Save to Firebase (if logged in)]
-```
+
+## ⚙️ Architecture Diagram
+
+<img src="screenshots/architecture.png" width="800" alt="Architecture Diagram">
+
 
 
 
