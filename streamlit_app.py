@@ -689,7 +689,35 @@ if st.session_state.results:
                         st.markdown(f"- **{name}** — {address}<br>📞 {phone} [[Map]({maps_url})]", unsafe_allow_html=True)
                     break
             else:
-                st.info("No specialty clinics found nearby for flagged concerns.")
+                st.warning("No specialty clinics found nearby for flagged concerns.")
+                # Fallback to general clinics
+                fallback = requests.get(places_url, params={
+                    "location": f"{st.session_state.lat},{st.session_state.lon}",
+                    "radius": 10000,
+                    "keyword": "clinic",
+                    "type": "hospital",
+                    "key": st.secrets["google_service_account"]["places_api_key"]
+                }).json()
+
+                if fallback.get("results"):
+                    st.markdown("### 🔄 Showing general clinics near you instead:")
+                    for result in fallback["results"][:5]:
+                        name = result.get("name")
+                        address = result.get("vicinity")
+                        place_id = result.get("place_id")
+                        maps_url = f"https://www.google.com/maps/search/?api=1&query={result['geometry']['location']['lat']},{result['geometry']['location']['lng']}"
+
+                        details_url = "https://maps.googleapis.com/maps/api/place/details/json"
+                        details_resp = requests.get(details_url, params={
+                            "place_id": place_id,
+                            "fields": "formatted_phone_number",
+                            "key": st.secrets["google_service_account"]["places_api_key"]
+                        }).json()
+                        phone = details_resp.get("result", {}).get("formatted_phone_number", "Phone not listed")
+
+                        st.markdown(f"- **{name}** — {address}<br>📞 {phone} [[Map]({maps_url})]", unsafe_allow_html=True)
+                else:
+                    st.info("❌ No clinics found in your area. Try a broader location.")
 
 # ---------------------- VIEW PAST REPORTS ----------------------
 if st.session_state.logged_in:
