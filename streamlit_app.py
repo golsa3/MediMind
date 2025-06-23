@@ -43,7 +43,7 @@ with st.sidebar:
 
 if st.session_state.get("location_retrieved"):
     st.success("📍 Location successfully retrieved using your device.")
-    del st.session_state["location_retrieved"]  # Optional: clear the flag after showing
+    del st.session_state["location_retrieved"]  
 
 
 def clean_text(text):
@@ -107,7 +107,6 @@ def generate_clean_pdf(case, timestamp, reflection, precautions):
                 f"<p><strong>{clean_text(label)}:</strong> {clean_text(rest)}</p>"
             )
 
-        # Just a paragraph
         else:
             flush_list()
             enhanced_reflection.append(f"<p>{clean_text(clean_line)}</p>")
@@ -197,10 +196,10 @@ def generate_clean_pdf(case, timestamp, reflection, precautions):
         options={
             "enable-local-file-access": "",
             "encoding": "UTF-8",
-            "no-print-media-type": "",        # ← disables printer-specific styling
-            "print-media-type": None,         # ← prevents triggering printer emulation
+            "no-print-media-type": "",        #no printer-specific styling
+            "print-media-type": None,         #no printer pop-up 
             "quiet": "",
-            "disable-smart-shrinking": ""     # ← optional, but improves rendering consistency
+            "disable-smart-shrinking": ""     
         }
     )
     return pdf_bytes
@@ -279,7 +278,7 @@ options = ["Log In", "Sign Up", "Continue as Guest"]
 if "auth_choice" not in st.session_state or st.session_state.auth_choice not in options:
     st.session_state.auth_choice = "Log In"
 
-# Render the radio button using session state for tracking
+#  radio button using session state for tracking
 auth_choice = st.radio(
     "Choose an action:",
     options,
@@ -366,7 +365,7 @@ elif auth_choice == "Sign Up":
             try:
 
                 user = auth.create_user_with_email_and_password(email, password)
-                login_user = auth.sign_in_with_email_and_password(email, password)  # log them in immediately
+                login_user = auth.sign_in_with_email_and_password(email, password)  # log in immediately
 
                 st.session_state.user = {
                     "email": email,
@@ -374,7 +373,7 @@ elif auth_choice == "Sign Up":
                     "last_name": last_name,
                     "idToken": login_user["idToken"]  
                 }
-                st.session_state.authenticated = True  # this can help redirect
+                st.session_state.authenticated = True  
                 st.session_state.logged_in = True
                 st.success("✅ Account created and logged in!")
                 st.rerun()
@@ -400,8 +399,6 @@ elif auth_choice == "Sign Up":
                         st.error(f"❌ Firebase error: {message}")
                 except Exception:
                     st.error("❌ Incorrect/Wrong format password")
-
-
 
 elif auth_choice == "Continue as Guest":
     st.session_state.logged_in = False
@@ -467,8 +464,6 @@ with st.form("patient_case_form"):
         }
     age = st.number_input("Age", min_value=0, max_value=120, value=45)
     sex = st.selectbox("Sex", ["M", "F", "Other"])
-    #with loc_col1:
-    #    user_location = st.text_input("Location (ZIP or City)", placeholder="e.g. 20052 or Washington, DC")
     col1, col2 = st.columns([2, 1])
     with col2:
         selected_unit = st.radio("Unit", ["kg", "lbs"], index=0 if st.session_state.display_unit == "kg" else 1)
@@ -511,9 +506,6 @@ with st.form("patient_case_form"):
 
     labs = st.text_area("Lab Results", placeholder="e.g. WBC:11.2, Glucose:140")
     medications = st.text_area("Medications", placeholder="e.g. Metformin, Lisinopril")
-
-
-
 
     submitted = st.form_submit_button("Run MediMind Review")
 if "HTTP_COOKIE" in os.environ:
@@ -768,23 +760,9 @@ if st.session_state.logged_in:
         st.error(f"❌ Error loading past reports: {e}")
 
 # Also allow PDF download for guests
-
-# This function should be called during PDF download block
-# Example:
-# reflection = clean_text(st.session_state.reflection_summary or "No summary generated.")
-# precautions = clean_text(st.session_state.precautions_summary or "No at-home precautions provided.")
-# pdf_bytes = generate_clean_pdf(case, timestamp, reflection, precautions)
-# st.download_button("📄 Download PDF", data=pdf_bytes, file_name="medimind_report.pdf", mime="application/pdf")
-
 if not st.session_state.logged_in and st.session_state.results:
     #import pdfkit
     st.markdown("### ⬇️ Download Your Report")
-
-    
-
-
-
-
 
     timestamp = datetime.now(timezone.utc)
     case = st.session_state.patient_case
@@ -792,11 +770,6 @@ if not st.session_state.logged_in and st.session_state.results:
     reflection = clean_text(st.session_state.reflection_summary or "No summary generated.")
     precautions = clean_text(st.session_state.precautions_summary or "No at-home precautions provided.")
     
-
-    
-
-    
-
     pdf_bytes = generate_clean_pdf(case, timestamp, reflection, precautions)
 
     st.download_button(
@@ -805,7 +778,6 @@ if not st.session_state.logged_in and st.session_state.results:
         file_name="medimind_guest_report.pdf",
         mime="application/pdf"
     )
-
 
 # Feedback
 st.markdown("<div id='feedback'></div>", unsafe_allow_html=True)
